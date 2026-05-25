@@ -6,6 +6,7 @@ from typing import AsyncIterator
 from fastapi import FastAPI
 
 from src.settings.settings import get_settings
+from src.shared.router import api_router
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +31,7 @@ def create_app() -> FastAPI:
         description="A production-grade REST + WebSocket API for a multi-tenant task management platform.",
         lifespan=lifespan,
     )
+    app.include_router(api_router)
     return app
 
 
