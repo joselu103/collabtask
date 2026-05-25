@@ -11,17 +11,15 @@ class Base(DeclarativeBase): ...
 
 class TimestampMixin:
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default_factory=lambda: datetime.now(timezone.utc)
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default_factory=lambda: datetime.now(timezone.utc),
+        default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
 
 class BaseModel(Base, TimestampMixin):
     __abstract__ = True
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID, primary_key=True, default_factory=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID, primary_key=True, default=uuid.uuid4)

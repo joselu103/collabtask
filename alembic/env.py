@@ -21,7 +21,10 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
+
+from src.organizations.models import Organization, OrganizationMember  # noqa: F401
 from src.shared.models import Base
+from src.users.models import User  # noqa: F401
 
 target_metadata = Base.metadata
 

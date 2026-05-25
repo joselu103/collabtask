@@ -19,7 +19,7 @@ class BaseRepository(Generic[ModelType]):
         """Fetch single record by PK"""
         stmt = select(self.model).where(self.model.id == id)
         result = await self.session.execute(stmt)
-        return result.scalars().one_or_none()
+        return result.scalar_one_or_none()
 
     async def get_all(self, limit: int, offset: int) -> list[ModelType]:
         """Paginated fetch"""
