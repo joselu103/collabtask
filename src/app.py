@@ -5,6 +5,8 @@ from typing import AsyncIterator
 
 from fastapi import FastAPI
 
+from src.settings.settings import get_settings
+
 logger = logging.getLogger(__name__)
 
 
@@ -20,9 +22,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 
 def create_app() -> FastAPI:
+    settings = get_settings()
+
     app = FastAPI(
-        title="CollabTask",
-        version="0.0.1",
+        title=settings.app_name,
+        version=settings.app_version,
         description="A production-grade REST + WebSocket API for a multi-tenant task management platform.",
         lifespan=lifespan,
     )
