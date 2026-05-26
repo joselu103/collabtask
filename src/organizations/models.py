@@ -16,6 +16,15 @@ class MemberRole(str, PyEnum):
     ADMIN = "admin"
     MEMBER = "member"
 
+    @property
+    def order(self):
+        return {MemberRole.MEMBER: 1, MemberRole.ADMIN: 2, MemberRole.OWNER: 3}[self]
+
+    def __lt__(self, other):
+        if not isinstance(other, MemberRole):
+            return NotImplemented
+        return self.order < other.order
+
 
 class Organization(BaseModel):
     __tablename__ = "organizations"

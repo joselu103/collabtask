@@ -2,11 +2,13 @@
 import uuid
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Path, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.engine import get_db
+from src.organizations.models import MemberRole
+from src.organizations.repository import OrganizationMemberRepository
 from src.users.models import User
 from src.users.repository import UserRepository
 from src.users.tokens import JWTValidationException, decode_token
@@ -71,3 +73,42 @@ async def get_active_user(user: Annotated[User, Depends(get_current_user)]) -> U
     if not user.is_active:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "User is not active.")
     return user
+
+
+def require_organization_role(required_role: MemberRole):
+    """Creates a dependency that ensures that the current active user is
+    a member of an organization with a high enough role.
+
+    Args:
+        required_role: Minimum role required.
+
+    Returns:
+        The authenticated User model with the required role.
+
+    Raises:
+        HTTPException(403): User is not a member of the organization
+            or does not meet the required role.
+    """
+
+    async def check_role(
+        user: Annotated[User, Depends(get_active_user)],
+        org_id: Annotated[uuid.UUID, Path()],
+        session: Annotated[AsyncSession, Depends(get_db)],
+    ) -> User:
+        """Verify the active user holds the required role in the target
+        organization.
+        """
+        member = await OrganizationMemberRepository(
+            session
+        ).get_by_user_and_organization_ids(user.id, org_id)
+        if not member:
+            raise HTTPException(
+                status.HTTP_403_FORBIDDEN, "User is not a member of the organization."
+            )
+        if member.role < required_role:
+            raise HTTPException(
+                status.HTTP_403_FORBIDDEN, "User doesn't meet the required role."
+            )
+        return user
+
+    return check_role
