@@ -4,8 +4,6 @@ import uvicorn
 from src.app import create_app
 from src.settings.settings import get_settings
 
-development_mode = True  # TODO temporary
-
 
 def main():
     settings = get_settings()
