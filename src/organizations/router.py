@@ -8,11 +8,13 @@ from src.database.engine import get_db
 from src.organizations.repository import MemberRole
 from src.organizations.schemas import (
     MemberInvite,
+    MemberResponse,
     OrganizationCreate,
     OrganizationResponse,
 )
 from src.organizations.service import (
     CreateOrganizationError,
+    InsufficientPermissionError,
     LastOwnerError,
     MemberNotFound,
     NewMemberError,
@@ -49,24 +51,30 @@ async def create_organization(
         )
 
 
-@router.post("/{org_id}/members", response_model=MemberInvite)
+@router.post("/{org_id}/members", response_model=MemberResponse)
 async def invite_member(
     org_service: Annotated[OrganizationService, Depends(get_org_service)],
     user: Annotated[User, Depends(require_organization_role(MemberRole.ADMIN))],
     org_id: uuid.UUID,
     new_member_data: MemberInvite,
-):
+) -> MemberResponse:
     """Invite a member to the organization. The requesting user must be
     at least and admin of the organization.
     """
     try:
-        await org_service.invite_member(
+        new_member = await org_service.invite_member(
             org_id=org_id,
             data=new_member_data,
             requesting_user=user,
         )
         await org_service.commit()
-        return new_member_data
+        return MemberResponse.model_validate(new_member)
+    except InsufficientPermissionError:
+        await org_service.rollback()
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN,
+            "User must be at least an admin of the organization.",
+        )
     except NewMemberError:
         await org_service.rollback()
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Unable to invite new member")
@@ -90,6 +98,11 @@ async def remove_member(
         )
         await org_service.commit()
 
+    except InsufficientPermissionError:
+        await org_service.rollback()
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN, "User is not an owner of the organization."
+        )
     except MemberNotFound:
         await org_service.rollback()
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Member not found.")

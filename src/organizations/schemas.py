@@ -1,7 +1,7 @@
 # src/organizations/schemas.py
 import uuid
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from src.organizations.models import MemberRole
 
@@ -16,7 +16,17 @@ class OrganizationResponse(BaseModel):
     name: str
     slug: str
 
+    model_config = ConfigDict(from_attributes=True)
+
 
 class MemberInvite(BaseModel):
     user_id: uuid.UUID
     role: MemberRole = MemberRole.MEMBER
+
+
+class MemberResponse(BaseModel):
+    user_id: uuid.UUID
+    org_id: uuid.UUID
+    role: MemberRole
+
+    model_config = ConfigDict(from_attributes=True)
