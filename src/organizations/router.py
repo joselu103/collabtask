@@ -21,10 +21,12 @@ from src.organizations.service import (
     OrganizationService,
     RemoveMemberError,
 )
+from src.projects.router import router as proj_router
 from src.shared.dependencies import get_active_user, require_organization_role
 from src.users.models import User
 
 router = APIRouter(prefix="/organizations", tags=["organizations"])
+router.include_router(proj_router)
 
 
 def get_org_service(session: Annotated[AsyncSession, Depends(get_db)]):

@@ -10,6 +10,7 @@ from src.organizations.repository import (
     OrganizationRepository,
 )
 from src.organizations.schemas import MemberInvite, OrganizationCreate
+from src.shared.exceptions import InsufficientPermissionError
 from src.users.models import User
 
 
@@ -21,9 +22,6 @@ class NewMemberError(Exception): ...
 
 
 class MemberNotFound(Exception): ...
-
-
-class InsufficientPermissionError(Exception): ...
 
 
 class LastOwnerError(Exception): ...
