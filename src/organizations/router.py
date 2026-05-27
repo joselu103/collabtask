@@ -36,9 +36,15 @@ async def create_organization(
     org_service: Annotated[OrganizationService, Depends(get_org_service)],
     user: Annotated[User, Depends(get_active_user)],
     org_data: OrganizationCreate,
-):
+) -> OrganizationResponse:
     """Create a new organization. Its creator will be the first member
     and owner.
+
+    Returns:
+        The newly created organization data.
+
+    Raises:
+        HTTPException(400): Unable to create organization.
     """
     try:
         async with transaction(org_service.session):
@@ -61,6 +67,13 @@ async def invite_member(
 ) -> MemberResponse:
     """Invite a member to the organization. The requesting user must be
     at least and admin of the organization.
+
+    Returns:
+        The new member data.
+
+    Raises:
+        HTTPException(403): User must be at least an admin of the organization.
+        HTTPException(400): Unable to invite member.
     """
     try:
         async with transaction(org_service.session):
@@ -88,6 +101,12 @@ async def remove_member(
 ) -> None:
     """Remove a member from the organization. The requesting user must be
     an owner of the organization.
+
+    Raises:
+        HTTPException(400): Unable to remove member.
+        HTTPException(403): User is not an owner of the organization.
+        HTTPException(404): Member not found.
+        HTTPException(409): Can not remove the last owner of the organization.
     """
     try:
         async with transaction(org_service.session):
@@ -105,7 +124,8 @@ async def remove_member(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Member not found.")
     except LastOwnerError:
         raise HTTPException(
-            status.HTTP_409_CONFLICT, "Can not remove the last owner of the group."
+            status.HTTP_409_CONFLICT,
+            "Can not remove the last owner of the organization.",
         )
     except RemoveMemberError:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Unable to remove member")
