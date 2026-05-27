@@ -4,6 +4,8 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.database.engine import get_db
+from src.organizations.repository import MemberRole
 from src.organizations.schemas import (
     MemberInvite,
     OrganizationCreate,
@@ -11,11 +13,13 @@ from src.organizations.schemas import (
 )
 from src.organizations.service import (
     CreateOrganizationError,
-    InviteMemberError,
+    LastOwnerError,
+    MemberNotFound,
+    NewMemberError,
     OrganizationService,
     RemoveMemberError,
 )
-from src.shared.dependencies import get_active_user, get_db
+from src.shared.dependencies import get_active_user, require_organization_role
 from src.users.models import User
 
 router = APIRouter(prefix="/organizations")
@@ -37,8 +41,8 @@ async def create_organization(
     try:
         organization = await org_service.create_organization(user=user, data=org_data)
         await org_service.commit()
-        return OrganizationResponse(**organization)
-    except CreateOrganizationError:
+        return OrganizationResponse.model_validate(organization)
+    except CreateOrganizationError, NewMemberError:
         await org_service.rollback()
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST, "Unable to create organization"
@@ -48,7 +52,7 @@ async def create_organization(
 @router.post("/{org_id}/members", response_model=MemberInvite)
 async def invite_member(
     org_service: Annotated[OrganizationService, Depends(get_org_service)],
-    user: Annotated[User, Depends(get_active_user)],
+    user: Annotated[User, Depends(require_organization_role(MemberRole.ADMIN))],
     org_id: uuid.UUID,
     new_member_data: MemberInvite,
 ):
@@ -63,7 +67,7 @@ async def invite_member(
         )
         await org_service.commit()
         return new_member_data
-    except InviteMemberError:
+    except NewMemberError:
         await org_service.rollback()
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Unable to invite new member")
 
@@ -71,7 +75,7 @@ async def invite_member(
 @router.delete("/{org_id}/members/{user_id}")
 async def remove_member(
     org_service: Annotated[OrganizationService, Depends(get_org_service)],
-    user: Annotated[User, Depends(get_active_user)],
+    user: Annotated[User, Depends(require_organization_role(MemberRole.OWNER))],
     org_id: uuid.UUID,
     user_id: uuid.UUID,
 ) -> None:
@@ -85,6 +89,15 @@ async def remove_member(
             requesting_user=user,
         )
         await org_service.commit()
+
+    except MemberNotFound:
+        await org_service.rollback()
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Member not found.")
+    except LastOwnerError:
+        await org_service.rollback()
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, "Can not remove the last owner of the group."
+        )
     except RemoveMemberError:
         await org_service.rollback()
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Unable to remove member")

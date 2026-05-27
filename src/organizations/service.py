@@ -1,6 +1,7 @@
 # src/organizations/service.py
 import uuid
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.organizations.models import MemberRole, Organization, OrganizationMember
@@ -12,15 +13,23 @@ from src.organizations.schemas import MemberInvite, OrganizationCreate
 from src.users.models import User
 
 
+# Exceptions
 class CreateOrganizationError(Exception): ...
 
 
-class InviteMemberError(Exception): ...
+class NewMemberError(Exception): ...
+
+
+class MemberNotFound(Exception): ...
+
+
+class LastOwnerError(Exception): ...
 
 
 class RemoveMemberError(Exception): ...
 
 
+# Services
 class OrganizationService:
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -41,12 +50,13 @@ class OrganizationService:
 
         Raises:
             CreateOrganizationError: if the creation of the organization
-                or the creation of the owner membership fails.
+                fails.
+            NewMemberError: if the creation of the first owner fails.
         """
         try:
             organization = Organization(**data.model_dump())
             await self.org_repo.create(organization)
-        except Exception as e:
+        except IntegrityError as e:
             raise CreateOrganizationError(f"Error while creating the organization: {e}")
 
         try:
@@ -54,8 +64,8 @@ class OrganizationService:
                 user_id=user.id, organization_id=organization.id, role=MemberRole.OWNER
             )
             await self.member_repo.create(member)
-        except Exception as e:
-            raise CreateOrganizationError(
+        except IntegrityError as e:
+            raise NewMemberError(
                 f"Error while adding the owner to the organization: {e}"
             )
 
@@ -75,20 +85,16 @@ class OrganizationService:
             New organization member model.
 
         Raises:
-            InviteMemberError: if the member addition fails.
+            NewMemberError: if the member addition fails.
         """
         requesting_member = await self.member_repo.get_by_user_and_organization_ids(
             user_id=requesting_user.id, organization_id=org_id
         )
-        if not requesting_member or requesting_member.role < MemberRole.ADMIN:
-            raise InviteMemberError(
-                "Requesting user doesn't meet the requirements to invite other members."
-            )
         try:
             member = OrganizationMember(organization_id=org_id, **data.model_dump())
             await self.member_repo.create(member)
-        except Exception as e:
-            raise InviteMemberError(
+        except IntegrityError as e:
+            raise NewMemberError(
                 f"Error while adding a new member to the organization: {e}"
             )
         return member
@@ -104,15 +110,15 @@ class OrganizationService:
             requesting_user: user requesting the operation.
 
         Raises:
+            MemberNotFound: The user to remove is not a member of the
+                organization.
+            LastOwnerError: If the user to remove is the last owner of
+                the organization.
             RemoveMemberError: if the member removal fails.
         """
         requesting_member = await self.member_repo.get_by_user_and_organization_ids(
             user_id=requesting_user.id, organization_id=org_id
         )
-        if not requesting_member or requesting_member.role != MemberRole.OWNER:
-            raise RemoveMemberError(
-                "Requesting user doesn't meet the requirements to remove other members."
-            )
 
         member_to_remove = await self.member_repo.get_by_user_and_organization_ids(
             user_id=user_id, organization_id=org_id
@@ -121,13 +127,11 @@ class OrganizationService:
             raise RemoveMemberError("User is not a member of the organization.")
 
         if await self._is_removing_last_owner(requesting_user, user_id, org_id):
-            raise RemoveMemberError(
-                "Can not remove the last owner of the organization."
-            )
+            raise LastOwnerError("Can not remove the last owner of the organization.")
 
         try:
             await self.member_repo.delete(member_to_remove)
-        except Exception as e:
+        except IntegrityError as e:
             raise RemoveMemberError(
                 f"Error while removing member from the organization: {e}."
             )
@@ -135,9 +139,6 @@ class OrganizationService:
     async def _is_removing_last_owner(
         self, requesting_user: User, user_id: uuid.UUID, org_id: uuid.UUID
     ) -> bool:
-        if requesting_user.id != user_id:
-            return False
-
         owners = await self.member_repo.get_by_role_and_organization_id(
             role=MemberRole.OWNER, organization_id=org_id
         )
