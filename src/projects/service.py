@@ -101,6 +101,8 @@ class ProjectService:
         )
 
         project.is_archived = True
+        await self.session.flush()
+
         return project
 
     async def list_projects(

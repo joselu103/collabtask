@@ -25,6 +25,7 @@ if config.config_file_name is not None:
 from src.organizations.models import Organization, OrganizationMember  # noqa: F401
 from src.projects.models import Project  # noqa: F401
 from src.shared.models import Base
+from src.tasks.models import Task  # noqa: F401
 from src.users.models import User  # noqa: F401
 
 target_metadata = Base.metadata

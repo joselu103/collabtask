@@ -16,9 +16,11 @@ from src.projects.service import (
 )
 from src.shared.dependencies import require_organization_role
 from src.shared.exceptions import InsufficientPermissionError
+from src.tasks.router import router as tasks_router
 from src.users.models import User
 
 router = APIRouter(prefix="/{org_id}/projects", tags=["projects"])
+router.include_router(tasks_router)
 
 
 def get_proj_service(
@@ -63,8 +65,7 @@ async def create_project(
     org_id: uuid.UUID,
     data: ProjectCreate,
 ) -> ProjectResponse:
-    """Obtain a wrapped list with the projects of an organization and
-    the total amount.
+    """Create a new project in the indicated organization.
 
     Raises:
         HTTPException(400): Unable to create new project.
@@ -101,7 +102,7 @@ async def archive_project(
         HTTPException(400): Project is already archived.
         HTTPException(403): User must be at least an admin of the
             organization.
-        HTTPException(404): Member not found.
+        HTTPException(404): Project not found.
     """
     try:
         async with transaction(proj_service.session):
