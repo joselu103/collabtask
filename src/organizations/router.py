@@ -25,7 +25,7 @@ from src.projects.router import router as proj_router
 from src.shared.dependencies import get_active_user, require_organization_role
 from src.users.models import User
 
-router = APIRouter(prefix="/organizations", tags=["organizations"])
+router = APIRouter(prefix="/organizations")
 router.include_router(proj_router)
 
 
@@ -34,7 +34,10 @@ def get_org_service(session: Annotated[AsyncSession, Depends(get_db)]):
 
 
 @router.post(
-    "", response_model=OrganizationResponse, status_code=status.HTTP_201_CREATED
+    "",
+    response_model=OrganizationResponse,
+    status_code=status.HTTP_201_CREATED,
+    tags=["organizations"],
 )
 async def create_organization(
     org_service: Annotated[OrganizationService, Depends(get_org_service)],
@@ -66,6 +69,7 @@ async def create_organization(
     "/{org_id}/members",
     response_model=MemberResponse,
     status_code=status.HTTP_201_CREATED,
+    tags=["organizations"],
 )
 async def invite_member(
     org_service: Annotated[OrganizationService, Depends(get_org_service)],
@@ -100,7 +104,11 @@ async def invite_member(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Unable to invite new member")
 
 
-@router.delete("/{org_id}/members/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{org_id}/members/{user_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    tags=["organizations"],
+)
 async def remove_member(
     org_service: Annotated[OrganizationService, Depends(get_org_service)],
     user: Annotated[User, Depends(require_organization_role(MemberRole.OWNER))],

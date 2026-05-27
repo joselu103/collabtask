@@ -19,7 +19,7 @@ from src.shared.exceptions import InsufficientPermissionError
 from src.tasks.router import router as tasks_router
 from src.users.models import User
 
-router = APIRouter(prefix="/{org_id}/projects", tags=["projects"])
+router = APIRouter(prefix="/{org_id}/projects")
 router.include_router(tasks_router)
 
 
@@ -29,7 +29,7 @@ def get_proj_service(
     return ProjectService(session=session)
 
 
-@router.get("", response_model=ProjectList)
+@router.get("", response_model=ProjectList, tags=["projects"])
 async def get_project_list(
     user: Annotated[User, Depends(require_organization_role(MemberRole.MEMBER))],
     proj_service: Annotated[ProjectService, Depends(get_proj_service)],
@@ -58,7 +58,7 @@ async def get_project_list(
         )
 
 
-@router.post("", response_model=ProjectResponse)
+@router.post("", response_model=ProjectResponse, tags=["projects"])
 async def create_project(
     user: Annotated[User, Depends(require_organization_role(MemberRole.ADMIN))],
     proj_service: Annotated[ProjectService, Depends(get_proj_service)],
@@ -89,7 +89,9 @@ async def create_project(
         )
 
 
-@router.patch("/{project_id}/archive", response_model=ProjectResponse)
+@router.patch(
+    "/{project_id}/archive", response_model=ProjectResponse, tags=["projects"]
+)
 async def archive_project(
     user: Annotated[User, Depends(require_organization_role(MemberRole.ADMIN))],
     proj_service: Annotated[ProjectService, Depends(get_proj_service)],

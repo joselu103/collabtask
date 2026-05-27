@@ -31,7 +31,7 @@ from src.users.models import User
 # TODO Consider passing down org_id to services and skip project and skip
 # validations
 
-router = APIRouter(prefix="/{project_id}/tasks", tags=["tasks"])
+router = APIRouter(prefix="/{project_id}/tasks")
 
 
 def get_task_service(
@@ -41,7 +41,7 @@ def get_task_service(
 
 
 # GET /api/v1/organizations/{org_id}/projects/{project_id}/tasks
-@router.get("", response_model=TaskList)
+@router.get("", response_model=TaskList, tags=["tasks"])
 async def get_task_list(
     user: Annotated[User, Depends(require_organization_role(MemberRole.MEMBER))],
     task_service: Annotated[TaskService, Depends(get_task_service)],
@@ -74,7 +74,9 @@ async def get_task_list(
 
 
 # POST /api/v1/organizations/{org_id}/projects/{project_id}/tasks
-@router.post("", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "", response_model=TaskResponse, status_code=status.HTTP_201_CREATED, tags=["tasks"]
+)
 async def create_task(
     user: Annotated[User, Depends(require_organization_role(MemberRole.MEMBER))],
     task_service: Annotated[TaskService, Depends(get_task_service)],
@@ -107,7 +109,7 @@ async def create_task(
 
 
 # PATCH /api/v1/organizations/{org_id}/projects/{project_id}/tasks/{task_id}/status
-@router.patch("/{task_id}/status", response_model=TaskResponse)
+@router.patch("/{task_id}/status", response_model=TaskResponse, tags=["tasks"])
 async def update_task_status(
     user: Annotated[User, Depends(require_organization_role(MemberRole.MEMBER))],
     task_service: Annotated[TaskService, Depends(get_task_service)],
@@ -147,7 +149,7 @@ async def update_task_status(
 
 
 # PATCH /api/v1/organizations/{org_id}/projects/{project_id}/tasks/{task_id}/assign
-@router.patch("/{task_id}/assign", response_model=TaskResponse)
+@router.patch("/{task_id}/assign", response_model=TaskResponse, tags=["tasks"])
 async def assign_task(
     user: Annotated[User, Depends(require_organization_role(MemberRole.MEMBER))],
     task_service: Annotated[TaskService, Depends(get_task_service)],
