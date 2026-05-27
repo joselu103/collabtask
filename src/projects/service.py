@@ -85,7 +85,7 @@ class ProjectService:
 
         Args:
             project_id: uuid of the project.
-            requesting_user: user creating the project.
+            requesting_user: user requesting the change.
 
         Returns:
             Archived project model.
