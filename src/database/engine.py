@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 from fastapi import FastAPI, Request
@@ -51,3 +52,16 @@ async def get_db(request: Request) -> AsyncGenerator[AsyncSession, None]:
         yield session
     finally:
         await session.close()
+
+
+@asynccontextmanager
+async def transaction(session: AsyncSession):
+    """Transaction context to be used in services to handle
+    commit/rollback depending on the result.
+    """
+    try:
+        yield
+        await session.commit()
+    except Exception:
+        await session.rollback()
+        raise

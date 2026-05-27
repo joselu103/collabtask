@@ -40,12 +40,12 @@ class OrganizationService:
         self.member_repo = OrganizationMemberRepository(session)
 
     async def create_organization(
-        self, user: User, data: OrganizationCreate
+        self, requesting_user: User, data: OrganizationCreate
     ) -> Organization:
         """Create a new Organization model with the user as owner.
 
         Args:
-            user: the user creating the organization.
+            requesting_user: the user creating the organization.
             data: necessary information about the new organization.
 
         Returns:
@@ -64,7 +64,9 @@ class OrganizationService:
 
         try:
             member = OrganizationMember(
-                user_id=user.id, organization_id=organization.id, role=MemberRole.OWNER
+                user_id=requesting_user.id,
+                organization_id=organization.id,
+                role=MemberRole.OWNER,
             )
             await self.member_repo.create(member)
         except IntegrityError as e:
@@ -158,9 +160,3 @@ class OrganizationService:
             role=MemberRole.OWNER, organization_id=member.organization_id
         )
         return len(owners) <= 1
-
-    async def commit(self):
-        await self.session.commit()
-
-    async def rollback(self):
-        await self.session.rollback()

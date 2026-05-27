@@ -4,7 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.database.engine import get_db
+from src.database.engine import get_db, transaction
 from src.organizations.repository import MemberRole
 from src.organizations.schemas import (
     MemberInvite,
@@ -41,11 +41,12 @@ async def create_organization(
     and owner.
     """
     try:
-        organization = await org_service.create_organization(user=user, data=org_data)
-        await org_service.commit()
+        async with transaction(org_service.session):
+            organization = await org_service.create_organization(
+                requesting_user=user, data=org_data
+            )
         return OrganizationResponse.model_validate(organization)
     except CreateOrganizationError, NewMemberError:
-        await org_service.rollback()
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST, "Unable to create organization"
         )
@@ -62,21 +63,19 @@ async def invite_member(
     at least and admin of the organization.
     """
     try:
-        new_member = await org_service.invite_member(
-            org_id=org_id,
-            data=new_member_data,
-            requesting_user=user,
-        )
-        await org_service.commit()
+        async with transaction(org_service.session):
+            new_member = await org_service.invite_member(
+                org_id=org_id,
+                data=new_member_data,
+                requesting_user=user,
+            )
         return MemberResponse.model_validate(new_member)
     except InsufficientPermissionError:
-        await org_service.rollback()
         raise HTTPException(
             status.HTTP_403_FORBIDDEN,
             "User must be at least an admin of the organization.",
         )
     except NewMemberError:
-        await org_service.rollback()
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Unable to invite new member")
 
 
@@ -91,26 +90,22 @@ async def remove_member(
     an owner of the organization.
     """
     try:
-        await org_service.remove_member(
-            org_id=org_id,
-            user_id=user_id,
-            requesting_user=user,
-        )
-        await org_service.commit()
+        async with transaction(org_service.session):
+            await org_service.remove_member(
+                org_id=org_id,
+                user_id=user_id,
+                requesting_user=user,
+            )
 
     except InsufficientPermissionError:
-        await org_service.rollback()
         raise HTTPException(
             status.HTTP_403_FORBIDDEN, "User is not an owner of the organization."
         )
     except MemberNotFound:
-        await org_service.rollback()
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Member not found.")
     except LastOwnerError:
-        await org_service.rollback()
         raise HTTPException(
             status.HTTP_409_CONFLICT, "Can not remove the last owner of the group."
         )
     except RemoveMemberError:
-        await org_service.rollback()
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Unable to remove member")
