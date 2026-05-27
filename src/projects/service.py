@@ -4,6 +4,7 @@ import uuid
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.organizations.permissions import check_role
 from src.organizations.repository import (
     MemberRole,
     OrganizationMemberRepository,
@@ -32,18 +33,6 @@ class ProjectService:
         self.proj_repo = ProjectRepository(session)
         self.member_repo = OrganizationMemberRepository(session)
 
-    async def _check_role(
-        self, user_id: uuid.UUID, organization_id: uuid.UUID, min_role: MemberRole
-    ) -> None:
-        requesting_member = await self.member_repo.get_by_user_and_organization_ids(
-            user_id=user_id, organization_id=organization_id
-        )
-
-        if not requesting_member or requesting_member.role < min_role:
-            raise InsufficientPermissionError(
-                f"User must be at least a {min_role} of the organization."
-            )
-
     async def create_project(
         self, org_id: uuid.UUID, requesting_user: User, data: ProjectCreate
     ) -> Project:
@@ -64,7 +53,8 @@ class ProjectService:
                 admin of the organization.
             CreateProjectError: if the creation of the project fails.
         """
-        await self._check_role(
+        await check_role(
+            member_repo=self.member_repo,
             user_id=requesting_user.id,
             organization_id=org_id,
             min_role=MemberRole.ADMIN,
@@ -103,7 +93,8 @@ class ProjectService:
         if project.is_archived:
             raise AlreadyArchived("The project is already archived")
 
-        await self._check_role(
+        await check_role(
+            member_repo=self.member_repo,
             user_id=requesting_user.id,
             organization_id=project.organization_id,
             min_role=MemberRole.ADMIN,
@@ -132,7 +123,8 @@ class ProjectService:
             InsufficientPermissionError: if the user is not at least a
                 member of the organization.
         """
-        await self._check_role(
+        await check_role(
+            member_repo=self.member_repo,
             user_id=requesting_user.id,
             organization_id=org_id,
             min_role=MemberRole.MEMBER,
