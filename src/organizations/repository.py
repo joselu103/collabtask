@@ -4,7 +4,7 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.organizations.models import Organization, OrganizationMember
+from src.organizations.models import MemberRole, Organization, OrganizationMember
 from src.shared.repository import BaseRepository
 
 
@@ -33,3 +33,14 @@ class OrganizationMemberRepository(BaseRepository[OrganizationMember]):
         )
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
+
+    async def get_by_role_and_organization_id(
+        self, role: MemberRole, organization_id: uuid.UUID
+    ) -> list[OrganizationMember]:
+        stmt = (
+            select(OrganizationMember)
+            .where(OrganizationMember.organization_id == organization_id)
+            .where(OrganizationMember.role == role)
+        )
+        result = await self.session.execute(stmt)
+        return result.scalars().all()
