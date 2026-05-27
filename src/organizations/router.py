@@ -24,14 +24,16 @@ from src.organizations.service import (
 from src.shared.dependencies import get_active_user, require_organization_role
 from src.users.models import User
 
-router = APIRouter(prefix="/organizations")
+router = APIRouter(prefix="/organizations", tags=["organizations"])
 
 
 def get_org_service(session: Annotated[AsyncSession, Depends(get_db)]):
     return OrganizationService(session=session)
 
 
-@router.post("", response_model=OrganizationResponse)
+@router.post(
+    "", response_model=OrganizationResponse, status_code=status.HTTP_201_CREATED
+)
 async def create_organization(
     org_service: Annotated[OrganizationService, Depends(get_org_service)],
     user: Annotated[User, Depends(get_active_user)],
@@ -58,7 +60,11 @@ async def create_organization(
         )
 
 
-@router.post("/{org_id}/members", response_model=MemberResponse)
+@router.post(
+    "/{org_id}/members",
+    response_model=MemberResponse,
+    status_code=status.HTTP_201_CREATED,
+)
 async def invite_member(
     org_service: Annotated[OrganizationService, Depends(get_org_service)],
     user: Annotated[User, Depends(require_organization_role(MemberRole.ADMIN))],
@@ -92,7 +98,7 @@ async def invite_member(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Unable to invite new member")
 
 
-@router.delete("/{org_id}/members/{user_id}")
+@router.delete("/{org_id}/members/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def remove_member(
     org_service: Annotated[OrganizationService, Depends(get_org_service)],
     user: Annotated[User, Depends(require_organization_role(MemberRole.OWNER))],

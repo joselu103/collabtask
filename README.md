@@ -4,12 +4,28 @@
 
 ### Introduction
 
-A production-grade REST + WebSocket API for a multi-tenant task management platform.
+A REST + WebSocket API for a multi-tenant task management platform.
 
-Think a backend to power functionalities such as teams, projects, tasks, assignments, real-time status updates, and background notifications.
+### Authentication & Authorization:
 
-### Tech stack
+- OAuth2 + JWT
+- Password hashing with bcrypt
+
+### Functionalites:
+
+- Organizations with Role-Based Access Control (RBAC).
+
+### Documentation:
+
+- Automatically generated thanks to FastAPI (check `/docs` and `/redoc`)
+
+### Tech stack:
 
 - Python
 - FastAPI
 - Uvicorn
+- SQLAlchemy
+- Alembic
+- pwdlib + bcrypt
+- PyJWT
+- PostgreSQL

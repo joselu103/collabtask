@@ -9,7 +9,7 @@ from src.database.engine import get_db, transaction
 from src.users.schemas import UserCreate, UserResponse
 from src.users.service import RegisterError, UserService
 
-router = APIRouter(prefix="/users")
+router = APIRouter(prefix="/users", tags=["users"])
 
 
 def get_user_service(
@@ -18,7 +18,9 @@ def get_user_service(
     return UserService(session)
 
 
-@router.post("/register", response_model=UserResponse)
+@router.post(
+    "/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED
+)
 async def register_user(
     user_service: Annotated[UserService, Depends(get_user_service)],
     user_data: UserCreate,

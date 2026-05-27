@@ -16,4 +16,4 @@ class UserResponse(BaseModel):
     id: uuid.UUID
     email: str
     username: str
-    is_active: str
+    is_active: bool
