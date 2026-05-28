@@ -33,6 +33,20 @@ class ProjectService:
         self.proj_repo = ProjectRepository(session)
         self.member_repo = OrganizationMemberRepository(session)
 
+    async def get_project(self, project_id: uuid.UUID) -> Project:
+        """Fetch a project by its id.
+
+        Returns:
+            Project model
+
+        Raises:
+            ProjectNotFound: if the project doesn't exist.
+        """
+        project = await self.proj_repo.get_by_id(project_id)
+        if not project:
+            raise ProjectNotFound("Project does not exist.")
+        return project
+
     async def create_project(
         self, org_id: uuid.UUID, requesting_user: User, data: ProjectCreate
     ) -> Project:
@@ -86,9 +100,7 @@ class ProjectService:
             InsufficientPermissionError: if the user is not at least an
                 admin of the organization.
         """
-        project = await self.proj_repo.get_by_id(project_id)
-        if not project:
-            raise ProjectNotFound("The project doesn't exist.")
+        project = await self.get_project(project_id)
 
         if project.is_archived:
             raise AlreadyArchived("The project is already archived")

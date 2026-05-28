@@ -8,7 +8,7 @@ from src.organizations.permissions import check_role
 from src.organizations.repository import MemberRole, OrganizationMemberRepository
 from src.projects.models import Project
 from src.projects.repository import ProjectRepository
-from src.projects.service import ProjectNotFound
+from src.projects.service import ProjectNotFound, ProjectService
 from src.shared.exceptions import InsufficientPermissionError
 from src.tasks.models import Task, TaskStatus
 from src.tasks.repository import TaskRepository
@@ -34,14 +34,9 @@ class TaskService:
     def __init__(self, session: AsyncSession):
         self.session = session
         self.task_repo = TaskRepository(session)
+        self.proj_service = ProjectService(session)
         self.member_repo = OrganizationMemberRepository(session)
         self.proj_repo = ProjectRepository(session)
-
-    async def _get_project(self, project_id: uuid.UUID) -> Project:
-        project = await self.proj_repo.get_by_id(project_id)
-        if not project:
-            raise ProjectNotFound("Project does not exist.")
-        return project
 
     async def create_task(
         self, project_id: uuid.UUID, requesting_user: User, data: TaskCreate
@@ -63,7 +58,7 @@ class TaskService:
                 a member of the organization.
             CreateTaskError: if the creation of the task fails.
         """
-        project = await self._get_project(project_id=project_id)
+        project = await self.proj_service.get_project(project_id=project_id)
 
         await check_role(
             member_repo=self.member_repo,
@@ -107,7 +102,7 @@ class TaskService:
         if not task:
             raise TaskNotFound("The task doesn't exist.")
 
-        project = await self._get_project(project_id=task.project_id)
+        project = await self.proj_service.get_project(project_id=task.project_id)
 
         await check_role(
             member_repo=self.member_repo,
@@ -148,7 +143,7 @@ class TaskService:
         if not task:
             raise TaskNotFound("The task doesn't exist.")
 
-        project = await self._get_project(project_id=task.project_id)
+        project = await self.proj_service.get_project(project_id=task.project_id)
 
         await check_role(
             member_repo=self.member_repo,
@@ -193,7 +188,7 @@ class TaskService:
             InsufficientPermissionError: if the user is not at least a
                 member of the organization.
         """
-        project = await self._get_project(project_id=project_id)
+        project = await self.proj_service.get_project(project_id=project_id)
 
         await check_role(
             member_repo=self.member_repo,
