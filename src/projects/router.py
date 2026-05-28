@@ -14,6 +14,7 @@ from src.projects.service import (
     ProjectNotFound,
     ProjectService,
 )
+from src.projects.ws_router import router as ws_router
 from src.shared.dependencies import require_organization_role
 from src.shared.exceptions import InsufficientPermissionError
 from src.tasks.router import router as tasks_router
@@ -21,6 +22,7 @@ from src.users.models import User
 
 router = APIRouter(prefix="/{org_id}/projects")
 router.include_router(tasks_router)
+router.include_router(ws_router)
 
 
 def get_proj_service(
