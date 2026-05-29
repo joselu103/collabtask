@@ -9,6 +9,7 @@ from src.database.engine import dispose_db, init_db
 from src.settings.settings import get_settings
 from src.shared.connection_manager import dispose_cm, init_cm
 from src.shared.router import api_router
+from src.workers.arq_app import dispose_arq_pool, init_arq_pool
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +20,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     logger.info("Application starting up")
     init_db(app)
     init_cm(app)
+    await init_arq_pool(app)
 
     yield  # ← application is running and serving requests
 
@@ -26,6 +28,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     logger.info("Application shutting down")
     await dispose_db(app)
     await dispose_cm(app)
+    await dispose_arq_pool(app)
 
 
 def create_app() -> FastAPI:

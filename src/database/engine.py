@@ -2,27 +2,46 @@ from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 from fastapi import FastAPI, Request
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 
 from src.settings.settings import get_settings
 
 
-def init_db(app: FastAPI) -> None:
+def create_db() -> tuple[AsyncEngine, async_sessionmaker[AsyncSession]]:
     """Initialize the async database engine and session factory.
 
     Reads database configuration from settings and attaches the engine
     and session factory to app.state for use across the application.
 
+    Returns:
+        Tuple containing the async database engine and the session
+        factory.
+    """
+    settings = get_settings()
+
+    async_engine = create_async_engine(
+        url=settings.database_url.get_secret_value(), echo=settings.debug
+    )
+    session_factory = async_sessionmaker(
+        bind=async_engine, expire_on_commit=False, class_=AsyncSession
+    )
+    return async_engine, session_factory
+
+
+def init_db(app: FastAPI) -> None:
+    """Calls create_db and store the async database engine and session
+    factory in app.state.
+
     Args:
         app: The FastAPI application instance.Must have settings with a
             valid database_url configured.
     """
-    settings = get_settings()
-
-    async_engine = create_async_engine(url=settings.database_url, echo=settings.debug)
-    session_factory = async_sessionmaker(
-        bind=async_engine, expire_on_commit=False, class_=AsyncSession
-    )
+    async_engine, session_factory = create_db()
 
     app.state.engine = async_engine
     app.state.session_factory = session_factory

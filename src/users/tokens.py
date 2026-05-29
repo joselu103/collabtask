@@ -28,7 +28,7 @@ def create_access_token(subject: str) -> str:
 
     return jwt.encode(
         payload={"sub": subject, "exp": expires_at, "type": "access"},
-        key=settings.secret_key,
+        key=settings.secret_key.get_secret_value(),
         algorithm="HS256",
     )
 
@@ -51,7 +51,7 @@ def create_refresh_token(subject: str) -> str:
 
     return jwt.encode(
         payload={"sub": subject, "exp": expires_at, "type": "refresh"},
-        key=settings.secret_key,
+        key=settings.secret_key.get_secret_value(),
         algorithm="HS256",
     )
 
@@ -71,7 +71,9 @@ def decode_token(token: str) -> dict[str, Any]:
     """
     settings = get_settings()
     try:
-        return jwt.decode(token, key=settings.secret_key, algorithms=("HS256",))
+        return jwt.decode(
+            token, key=settings.secret_key.get_secret_value(), algorithms=("HS256",)
+        )
     except (
         jwt.exceptions.ExpiredSignatureError,
         jwt.exceptions.InvalidSignatureError,

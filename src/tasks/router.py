@@ -2,7 +2,8 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from arq import ArqRedis
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.engine import get_db, transaction
@@ -27,6 +28,7 @@ from src.tasks.service import (
 )
 from src.tasks.state_machine import InvalidTransitionError
 from src.users.models import User
+from src.workers.dependencies import get_arq_pool
 
 # TODO Consider passing down org_id to services and skip project and skip
 # validations
@@ -157,6 +159,7 @@ async def assign_task(
     project_id: uuid.UUID,
     task_id: uuid.UUID,
     data: TaskAssigneeUpdate,
+    arq_pool: Annotated[ArqRedis, Depends(get_arq_pool)],
 ) -> TaskResponse:
     """Assign a task to a user from the organization.
 
@@ -171,6 +174,9 @@ async def assign_task(
             task = await task_service.assign_task(
                 task_id=task_id, requesting_user=user, assignee_id=data.assignee_id
             )
+        await arq_pool.enqueue_job(
+            "send_task_assigned_email", str(data.assignee_id), task.title
+        )
         return TaskResponse.model_validate(task)
 
     except TaskNotFound:

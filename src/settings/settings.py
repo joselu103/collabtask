@@ -1,6 +1,7 @@
 # src/settings.py
 from functools import lru_cache
 
+from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -16,12 +17,22 @@ class Settings(BaseSettings):
     allowed_origins: list[str] = ["*"]
 
     # Database
-    database_url: str
+    database_url: SecretStr
 
     # Authentication
-    secret_key: str
+    secret_key: SecretStr
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 7
+
+    # Redis
+    redis_url: SecretStr
+
+    # Email:
+    smtp_host: str
+    smtp_port: int = 587
+    smtp_user: str
+    smtp_password: SecretStr
+    email_from: str
 
 
 @lru_cache
