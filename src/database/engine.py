@@ -25,7 +25,7 @@ def create_db() -> tuple[AsyncEngine, async_sessionmaker[AsyncSession]]:
     settings = get_settings()
 
     async_engine = create_async_engine(
-        url=settings.database_url.get_secret_value(), echo=settings.debug
+        url=settings.database_url.get_secret_value(), echo=False
     )
     session_factory = async_sessionmaker(
         bind=async_engine, expire_on_commit=False, class_=AsyncSession
