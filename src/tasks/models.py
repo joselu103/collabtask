@@ -28,7 +28,7 @@ class Task(BaseModel):
     __tablename__ = "tasks"
 
     title: Mapped[str] = mapped_column(String, nullable=False)
-    description: Mapped[str] = mapped_column(String, nullable=True)
+    description: Mapped[str] = mapped_column(String, default="", nullable=False)
     project_id: Mapped[uuid.UUID] = mapped_column(
         UUID, ForeignKey("projects.id"), nullable=False
     )
