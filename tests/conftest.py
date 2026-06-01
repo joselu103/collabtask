@@ -6,7 +6,7 @@ from fastapi import Request
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from alembic.command import downgrade, upgrade
+from alembic.command import upgrade
 from alembic.config import Config
 from src.app import create_app
 from src.database.engine import dispose_db, get_db, init_db
@@ -55,3 +55,16 @@ async def client(app):
         transport=ASGITransport(app=app), base_url="http://test"
     ) as ac:
         yield ac
+
+
+@pytest.fixture
+async def db_session(app) -> AsyncGenerator[AsyncSession, None]:
+    session = None
+    try:
+        session_factory = app.state.session_factory
+        session = session_factory()
+        yield session
+    finally:
+        if session:
+            await session.rollback()
+            await session.close()
