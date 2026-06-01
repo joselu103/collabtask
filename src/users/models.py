@@ -14,5 +14,5 @@ class User(BaseModel):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     memberships: Mapped[list["Organization"]] = relationship(
-        "Organization", secondary="organization_members"
+        "Organization", secondary="organization_members", back_populates="members"
     )

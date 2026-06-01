@@ -33,7 +33,7 @@ class Organization(BaseModel):
     slug: Mapped[str] = mapped_column(String, unique=True, nullable=False, index=True)
 
     members: Mapped[list["User"]] = relationship(
-        "User", secondary="organization_members"
+        "User", secondary="organization_members", back_populates="memberships"
     )
 
 
