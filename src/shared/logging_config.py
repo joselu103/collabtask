@@ -6,15 +6,17 @@ import structlog
 
 from src.settings.settings import get_settings
 
-settings = get_settings()
-
 
 def _service_name_processor(_, __, event_dict: dict[str, Any]) -> dict[str, Any]:
+    settings = get_settings()
+
     event_dict["service"] = settings.app_name
     return event_dict
 
 
 def configure_logging():
+    settings = get_settings()
+
     renderer = (
         structlog.dev.ConsoleRenderer()
         if settings.debug
@@ -22,6 +24,8 @@ def configure_logging():
     )
 
     min_level = logging.DEBUG if settings.debug else logging.INFO
+
+    logging.getLogger().setLevel(min_level)
 
     structlog.configure(
         processors=[
