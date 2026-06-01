@@ -25,7 +25,7 @@ def configure_logging():
 
     min_level = logging.DEBUG if settings.debug else logging.INFO
 
-    logging.getLogger().setLevel(min_level)
+    logging.getLogger("src").setLevel(min_level)
 
     structlog.configure(
         processors=[
