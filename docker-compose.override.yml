@@ -1,0 +1,46 @@
+# docker-compose.override.yml
+services:
+  db:
+    ports:
+      - "5432:5432"
+
+  redis:
+    ports:
+      - "6379:6379"
+  
+  mailpit:
+    image: axllent/mailpit
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+
+  migrate:
+    build: .
+      
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+
+  worker:
+    build: .
+
+  db-test:
+    profiles:
+      - test
+    image: postgres:16
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: collabtask_test
+    volumes:
+      - postgres_data_test:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d collabtask_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+volumes:
+  postgres_data_test:
