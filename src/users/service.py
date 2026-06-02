@@ -1,12 +1,13 @@
 # src/users/service.py
 import uuid
 
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.users.models import User
 from src.users.repository import UserRepository
-from src.users.schemas import RefreshRequest, UserCreate, UserLogin
+from src.users.schemas import RefreshRequest, UserCreate
 from src.users.security import hash_password, verify_password
 from src.users.tokens import (
     JWTValidationException,
@@ -55,7 +56,7 @@ class UserService:
         except IntegrityError as e:
             raise RegisterError(f"Unable to create new user: {e}")
 
-    async def login(self, user_data: UserLogin) -> tuple[str, str]:
+    async def login(self, user_data: OAuth2PasswordRequestForm) -> tuple[str, str]:
         """Verify the user data and creates an access token.
 
         Args:
@@ -67,7 +68,7 @@ class UserService:
         Raises:
             LoginError: Wrong email or password.
         """
-        user = await self.user_repo.get_by_email(user_data.email)
+        user = await self.user_repo.get_by_email(user_data.username)
 
         if not user:
             raise LoginError("User not found")

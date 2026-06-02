@@ -13,7 +13,7 @@ from src.users.models import User
 from src.users.repository import UserRepository
 from src.users.tokens import JWTValidationException, decode_token
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/users/login")
 
 
 async def get_current_user(

@@ -25,8 +25,8 @@ def configure_logging():
 
     min_level = logging.DEBUG if settings.debug else logging.INFO
 
-    logging.getLogger("src").setLevel(min_level)
-    logging.getLogger("tests").setLevel(min_level)
+    initialize_logger("src", min_level)
+    initialize_logger("tests", min_level)
 
     structlog.configure(
         processors=[
@@ -36,6 +36,14 @@ def configure_logging():
             structlog.processors.TimeStamper(utc=True),
             renderer,
         ],
-        logger_factory=structlog.stdlib.LoggerFactory(),
+        logger_factory=structlog.PrintLoggerFactory(),
         wrapper_class=structlog.make_filtering_bound_logger(min_level),
     )
+
+
+def initialize_logger(logger_name: str, min_level: int | str):
+    handler = logging.StreamHandler()
+    handler.setLevel(min_level)
+    logger = logging.getLogger(logger_name)
+    logger.addHandler(handler)
+    logger.propagate = False

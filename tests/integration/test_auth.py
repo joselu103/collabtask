@@ -1,6 +1,7 @@
 # tests/integration/test_auth.py
 
 import faker
+from fastapi.security import OAuth2PasswordRequestForm
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -8,7 +9,6 @@ from src.users.schemas import (
     RefreshRequest,
     TokenResponse,
     UserCreate,
-    UserLogin,
     UserResponse,
 )
 from src.users.tokens import create_refresh_token
@@ -41,12 +41,10 @@ async def test_login(client: AsyncClient, db_session: AsyncSession):
     db_session.add(user)
     await db_session.commit()
 
-    login_data = UserLogin(email=user.email, password=user.email)
+    login_data = {"username": user.email, "password": user.email}
 
     # When
-    response = await client.post(
-        url="http://test/api/v1/users/login", json=login_data.model_dump()
-    )
+    response = await client.post(url="http://test/api/v1/users/login", data=login_data)
 
     # Then
     assert response.status_code == 200

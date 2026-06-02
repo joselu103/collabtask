@@ -26,7 +26,7 @@ class MemberInvite(BaseModel):
 
 class MemberResponse(BaseModel):
     user_id: uuid.UUID
-    org_id: uuid.UUID
+    organization_id: uuid.UUID
     role: MemberRole
 
     model_config = ConfigDict(from_attributes=True)

@@ -7,7 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=(".env", ".env.test"), env_file_encoding="utf-8"
+        env_file=(".env", ".env.test"), env_file_encoding="utf-8", extra="ignore"
     )
 
     # App
@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     smtp_user: str
     smtp_password: SecretStr
     email_from: str
+    smtp_tls: bool = False
 
 
 @lru_cache

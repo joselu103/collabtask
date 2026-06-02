@@ -3,6 +3,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.engine import get_db, transaction
@@ -11,7 +12,6 @@ from src.users.schemas import (
     RefreshRequest,
     TokenResponse,
     UserCreate,
-    UserLogin,
     UserResponse,
 )
 from src.users.service import LoginError, RefreshError, RegisterError, UserService
@@ -56,7 +56,7 @@ async def register_user(
 @limiter.limit("10/minute")
 async def login_user(
     user_service: Annotated[UserService, Depends(get_user_service)],
-    user_data: UserLogin,
+    user_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     request: Request,  # Necessary for limiter
 ) -> TokenResponse:
     """Login user with email and password.
