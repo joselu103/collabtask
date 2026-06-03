@@ -1,0 +1,44 @@
+# .github/workflows/github-actions.yml
+name: CI Workflow
+run-name: ${{ github.actor }} is pushing changes.
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+jobs:
+  build:
+    name: Run isort, black and tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Copy project files
+        uses: actions/checkout@v4
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v8
+      - name: Set-up environment
+        run: |
+          uv sync
+      - name: Run isort
+        run: |
+          uv run isort --check .
+      - name: Run black
+        run: |
+          uv run black --check .
+      - name: Run tests
+        run: |
+          uv run pytest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: collabtask_test
+        ports:
+          - "5433:5432"
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
