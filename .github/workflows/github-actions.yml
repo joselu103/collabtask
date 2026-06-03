@@ -15,7 +15,7 @@ jobs:
       - name: Copy project files
         uses: actions/checkout@v4
       - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@v8
+        uses: astral-sh/setup-uv@v8.1.0
       - name: Set-up environment
         run: |
           uv sync
