@@ -12,7 +12,6 @@ from src.organizations.repository import (
 from src.projects.models import Project
 from src.projects.repository import ProjectRepository
 from src.projects.schemas import ProjectCreate
-from src.shared.exceptions import InsufficientPermissionError
 from src.users.models import User
 
 

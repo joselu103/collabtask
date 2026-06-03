@@ -6,9 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.organizations.permissions import check_role
 from src.organizations.repository import MemberRole, OrganizationMemberRepository
-from src.projects.models import Project
 from src.projects.repository import ProjectRepository
-from src.projects.service import ProjectNotFound, ProjectService
+from src.projects.service import ProjectService
 from src.shared.exceptions import InsufficientPermissionError
 from src.tasks.models import Task, TaskStatus
 from src.tasks.repository import TaskRepository

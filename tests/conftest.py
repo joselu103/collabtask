@@ -2,12 +2,12 @@
 from typing import AsyncGenerator
 
 import pytest
+from alembic.command import upgrade
+from alembic.config import Config
 from fastapi import Request
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from alembic.command import upgrade
-from alembic.config import Config
 from src.app import create_app
 from src.database.engine import dispose_db, get_db, init_db
 from src.settings.settings import get_settings

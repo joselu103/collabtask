@@ -42,7 +42,10 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title=settings.app_name,
         version=settings.app_version,
-        description="A production-grade REST + WebSocket API for a multi-tenant task management platform.",
+        description=(
+            "A production-grade REST + WebSocket API for a multi-tenant task management"
+            " platform."
+        ),
         lifespan=lifespan,
     )
 

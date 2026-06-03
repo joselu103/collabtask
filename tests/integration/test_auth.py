@@ -1,7 +1,6 @@
 # tests/integration/test_auth.py
 
 import faker
-from fastapi.security import OAuth2PasswordRequestForm
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
