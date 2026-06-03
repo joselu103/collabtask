@@ -3,9 +3,9 @@ name: CI Workflow
 run-name: ${{ github.actor }} is pushing changes.
 on:
   push:
-    branches: ["master"]
+    branches: ["master", "workflows"]
   pull_request:
-    branches: ["master"]
+    branches: ["master", "workflows"]
 jobs:
   build:
     name: Run isort, black and tests
