@@ -51,7 +51,7 @@ async def test_setup(db_session) -> TasksInput:
 async def test_create_task(client, test_setup):
     # Given
     fake = faker.Faker()
-    user, organization, project, access_token = (
+    _, organization, project, access_token = (
         test_setup.user,
         test_setup.organization,
         test_setup.project,
@@ -75,7 +75,7 @@ async def test_create_task(client, test_setup):
 async def test_assign_task(app, db_session, client, test_setup):
     # Given
     fake = faker.Faker()
-    user, organization, project, access_token = (
+    _, organization, project, access_token = (
         test_setup.user,
         test_setup.organization,
         test_setup.project,
