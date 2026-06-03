@@ -103,7 +103,7 @@ class UserService:
         try:
             user_id = uuid.UUID(payload["sub"])
         except ValueError:
-            raise RefreshError(f"Invalid user id: {payload["sub"]}")
+            raise RefreshError(f"Invalid user id: {payload['sub']}")
 
         user = await self.user_repo.get_by_id(user_id)
 

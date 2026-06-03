@@ -17,3 +17,6 @@ wheels/
 
 # Coverage
 .coverage
+
+# Pre-commit
+.pre-commit-config.yaml

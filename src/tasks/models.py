@@ -2,9 +2,8 @@
 import uuid
 from enum import Enum
 
-from sqlalchemy import UUID
+from sqlalchemy import UUID, ForeignKey, String
 from sqlalchemy import Enum as SAEnum
-from sqlalchemy import ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.shared.models import BaseModel

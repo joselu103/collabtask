@@ -3,7 +3,7 @@ import uuid
 from typing import Annotated
 
 from arq import ArqRedis
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.engine import get_db, transaction
