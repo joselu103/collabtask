@@ -12,14 +12,13 @@ class ConnectionManager:
         self.connections: dict[uuid.UUID, list[WebSocket]] = defaultdict(list)
 
     async def connect(self, websocket: WebSocket, room_id: uuid.UUID) -> None:
-        """Accept and register a new connection in the provided room.
+        """Register a new accepted connection in the provided room.
 
         Args:
             websocket: new websocket instance.
             room_id: uuid of the room to which the websocket must be
                 asigned.
         """
-        await websocket.accept()
         self.connections[room_id].append(websocket)
 
     async def disconnect(self, websocket: WebSocket, room_id: uuid.UUID) -> None:

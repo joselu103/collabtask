@@ -1,51 +1,16 @@
 # tests/integration/test_task_lifecycle.py
-from dataclasses import dataclass
 from unittest.mock import AsyncMock
 
 import faker
-import pytest
 import structlog
 
-from src.organizations.models import Organization, OrganizationMember
-from src.projects.models import Project
+from src.organizations.models import OrganizationMember
 from src.tasks.models import Task
 from src.tasks.schemas import TaskAssigneeUpdate, TaskCreate, TaskResponse
-from src.users.models import User
-from src.users.tokens import create_access_token
 from src.workers.dependencies import get_arq_pool
-from tests.factories import OrganizationFactory, UserFactory
+from tests.factories import UserFactory
 
 logger = structlog.get_logger()
-
-
-@dataclass
-class TasksInput:
-    organization: Organization
-    project: Project
-    user: User
-    access_token: str
-
-
-@pytest.fixture
-async def test_setup(db_session) -> TasksInput:
-    organization = OrganizationFactory.build()
-    user = UserFactory.build()
-
-    db_session.add(organization)
-    db_session.add(user)
-    await db_session.flush()
-
-    member = OrganizationMember(user_id=user.id, organization_id=organization.id)
-    project = Project(name="test project", organization_id=organization.id)
-    db_session.add(member)
-    db_session.add(project)
-    await db_session.commit()
-
-    access_token = create_access_token(str(user.id))
-
-    return TasksInput(
-        organization=organization, user=user, project=project, access_token=access_token
-    )
 
 
 async def test_create_task(client, test_setup):
