@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Copy project files
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Install the latest version of uv
         uses: astral-sh/setup-uv@v8.1.0
       - name: Set-up environment
@@ -55,7 +55,7 @@ jobs:
 
     steps:
       - name: Copy project files
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Fetch AWS role and region
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -66,9 +66,9 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
       - name: Build+Push the image to ECR
         run: |
-          docker build -t $REGISTRY/collabtask:$IMAGE_TAG -t $REGISTRY/collabtask:latest .
-          docker push $REGISTRY/collabtask:$IMAGE_TAG
-          docker push $REGISTRY/collabtask:latest
+          docker build -t $REGISTRY/projects/collabtask:$IMAGE_TAG -t $REGISTRY/projects/collabtask:latest .
+          docker push $REGISTRY/projects/collabtask:$IMAGE_TAG
+          docker push $REGISTRY/projects/collabtask:latest
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}

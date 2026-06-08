@@ -15,7 +15,7 @@
         "ecr:CompleteLayerUpload",
         "ecr:PutImage"
       ],
-      "Resource": "arn:aws:ecr:<region>:<account-id>:repository/collabtask"
+      "Resource": "arn:aws:ecr:<region>:<account-id>:repository/projects/collabtask"
     }
   ]
 }
