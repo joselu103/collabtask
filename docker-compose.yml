@@ -1,16 +1,5 @@
 # docker-compose.yml
 services:
-  db:
-    image: postgres:16
-    env_file: .env
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   redis:
     image: redis:7-alpine
 
@@ -18,23 +7,15 @@ services:
     image: ${ECR_URL:-registry/collabtask}
     command: ["/app/.venv/bin/alembic", "upgrade", "head"]
     env_file: .env
-    depends_on:
-      db:
-        condition: service_healthy
   app:
     image: ${ECR_URL:-registry/collabtask}
     env_file: .env
-    depends_on:
-      db:
-        condition: service_healthy
 
   worker:
     image: ${ECR_URL:-registry/collabtask}
     command: ["/app/.venv/bin/python","-m", "arq", "src.workers.arq_app.WorkerSettings"]
     env_file: .env
     depends_on:
-      db:
-        condition: service_healthy
       redis:
         condition: service_started
 
@@ -47,6 +28,3 @@ services:
     depends_on:
       app:
         condition: service_started
-        
-volumes:
-  postgres_data:

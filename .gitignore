@@ -23,3 +23,9 @@ wheels/
 
 # AWS
 *.pem
+
+# Claude
+handoff.md
+
+# Test environment
+docker-compose.dev.yml
