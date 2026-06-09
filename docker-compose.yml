@@ -12,9 +12,6 @@ services:
     image: ${ECR_URL:-registry/collabtask}
     command: ["/app/.venv/bin/python","-m", "arq", "src.workers.arq_app.WorkerSettings"]
     env_file: .env
-    depends_on:
-      redis:
-        condition: service_started
 
   nginx:
     image: nginx:latest
