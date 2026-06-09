@@ -1,5 +1,7 @@
 # CollabTask
 
+[![CI/CD](https://github.com/joselu103/collabtask/actions/workflows/github-actions.yml/badge.svg?branch=master)](https://github.com/joselu103/collabtask/actions/workflows/github-actions.yml)
+
 A **multi-tenant task management API** built with FastAPI. Supports real-time project updates via WebSockets, role-based access control, background email notifications, and async database access throughout.
 
 Deployed on AWS at `https://63.181.132.61.nip.io`.

@@ -1,5 +1,5 @@
 # .github/workflows/github-actions.yml
-name: CI Workflow
+name: CI/CD
 run-name: ${{ github.actor }} is pushing changes.
 on:
   workflow_dispatch:
