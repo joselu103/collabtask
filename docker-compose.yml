@@ -1,8 +1,5 @@
 # docker-compose.yml
 services:
-  redis:
-    image: redis:7-alpine
-
   migrate:
     image: ${ECR_URL:-registry/collabtask}
     command: ["/app/.venv/bin/alembic", "upgrade", "head"]
